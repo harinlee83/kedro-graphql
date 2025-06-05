@@ -1,9 +1,10 @@
 from importlib import import_module
 from kedro_graphql.logs.logger import logger
+from collections import defaultdict
 
-UI_PLUGINS = {"FORMS": {},
-              "DATA": {},
-              "DASHBOARD": {},
+UI_PLUGINS = {"FORMS": defaultdict(list),
+              "DATA": defaultdict(list),
+              "DASHBOARD": defaultdict(list),
               }
 
 
@@ -26,10 +27,7 @@ def ui_form(pipeline):
     """
 
     def register_plugin(plugin_class):
-        if UI_PLUGINS["FORMS"].get(pipeline, False):
-            UI_PLUGINS["FORMS"][pipeline].append(plugin_class)
-        else:
-            UI_PLUGINS["FORMS"][pipeline] = [plugin_class]
+        UI_PLUGINS["FORMS"][pipeline].append(plugin_class)
         logger.info("registered ui_form plugin: " + str(plugin_class))
         return plugin_class
 
@@ -42,11 +40,9 @@ def ui_data(pipeline):
     Args:
         pipeline (str): Name of the pipeline for which the data plugin is registered.
     """
+
     def register_plugin(plugin_class):
-        if UI_PLUGINS["DATA"].get(pipeline, False):
-            UI_PLUGINS["DATA"][pipeline].append(plugin_class)
-        else:
-            UI_PLUGINS["DATA"][pipeline] = [plugin_class]
+        UI_PLUGINS["DATA"][pipeline].append(plugin_class)
         logger.info("registered ui_data plugin: " + str(plugin_class))
         return plugin_class
 
@@ -59,11 +55,9 @@ def ui_dashboard(pipeline):
     Args:
         pipeline (str): Name of the pipeline for which the dashboard plugin is registered.
     """
+
     def register_plugin(plugin_class):
-        if UI_PLUGINS["DASHBOARD"].get(pipeline, False):
-            UI_PLUGINS["DASHBOARD"][pipeline].append(plugin_class)
-        else:
-            UI_PLUGINS["DASHBOARD"][pipeline] = [plugin_class]
+        UI_PLUGINS["DASHBOARD"][pipeline].append(plugin_class)
         logger.info("registered ui_dashboard plugin: " + str(plugin_class))
         return plugin_class
 
