@@ -20,6 +20,8 @@ class PipelineFormFactory(pn.viewable.Viewer):
 
     def __init__(self, **params):
         super().__init__(**params)
+        pn.state.location.sync(
+            self, {"pipeline": "pipeline", "form": "form"})
 
         if not UI_PLUGINS["FORMS"].get(self.pipeline, None):
             self.options = []
@@ -41,6 +43,7 @@ class PipelineFormFactory(pn.viewable.Viewer):
     def __panel__(self):
         pn.state.location.sync(
             self, {"pipeline": "pipeline", "form": "form"})
+        pn.state.location.reload = True
         select = pn.widgets.Select.from_param(self.param.form,
                                               name='Select a form', options=self.options, value=self.param.form)
 

@@ -22,6 +22,7 @@ class NavigationSidebarButton(pn.viewable.Viewer):
 
     def navigate(self, event):
         """Navigate to the specified page."""
+        pn.state.location.reload = True
         pn.state.location.pathname = self.spec["config"]["base_url"]
         pn.state.location.search = "?page="+self.name.lower()
 

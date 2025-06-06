@@ -41,7 +41,7 @@ class PipelineCards(pn.viewable.Viewer):
             pipeline (str): The name of the pipeline to navigate to.
             form (panel.viewable.Viewer): The form to navigate to.
         """
-
+        pn.state.location.reload = True
         if event == "run":
             pn.state.location.search = "?page=" + self.form_page + \
                 "&pipeline=" + pipeline + "&form=" + form.__name__
