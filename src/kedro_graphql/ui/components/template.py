@@ -325,6 +325,10 @@ class KedroGraphqlMaterialTemplateV2(pn.template.MaterialTemplate):
         Args:
             spec (dict): The specification for the UI, including configuration and pages.
         """
+        # ensures singleton client across all pages (panel apps)
+        if "client" in spec["config"] and isinstance(spec["config"]["client"], KedroGraphqlClient):
+            print(f"Reusing existing KedroGraphqlClient: {spec['config']['client']}")
+            return spec
 
         if pn.state.cookies:
             cookies = pn.state.cookies
@@ -335,6 +339,7 @@ class KedroGraphqlMaterialTemplateV2(pn.template.MaterialTemplate):
             uri_graphql=spec["config"]["client_uri_graphql"], uri_ws=spec["config"]["client_uri_ws"], cookies=cookies)
 
         spec["config"]["client"] = client
+        print(f"Created new KedroGraphqlClient: {spec['config']['client']}")
         return spec
 
     def __init__(self, title="kedro-graphql", spec=None, main=[]):

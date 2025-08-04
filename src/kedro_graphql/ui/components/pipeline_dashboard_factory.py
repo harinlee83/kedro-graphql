@@ -42,17 +42,17 @@ class PipelineDashboardFactory(pn.viewable.Viewer):
         monitor = PipelineMonitor(spec=self.spec, pipeline=p)
         detail = PipelineDetail(pipeline=p)
         viz = PipelineViz(pipeline=p.name, spec=self.spec)
-        retry = PipelineRetry(client=self.spec["config"]["client"], pipeline=p)
-        cloning = PipelineCloning(client=self.spec["config"]["client"], pipeline=p)
-        explorer = DataCatalogExplorer(
-            spec=self.spec, pipeline=p, dataset_map=self.dataset_map)
+        # retry = PipelineRetry(client=self.spec["config"]["client"], pipeline=p)
+        # cloning = PipelineCloning(client=self.spec["config"]["client"], pipeline=p)
+        # explorer = DataCatalogExplorer(
+        #     spec=self.spec, pipeline=p, dataset_map=self.dataset_map)
         tabs = pn.Tabs(dynamic=False)
-        tabs.append(("Explorer", explorer))
+        # tabs.append(("Explorer", explorer))
         tabs.append(("Monitor", monitor))
         tabs.append(("Detail", detail))
         tabs.append(("Viz", viz))
-        tabs.append(("Retry", retry))
-        tabs.append(("Cloning", cloning))
+        # tabs.append(("Retry", retry))
+        # tabs.append(("Cloning", cloning))
         if UI_PLUGINS["DATA"].get(self.pipeline, None):
             for d in UI_PLUGINS["DATA"][self.pipeline]:
                 data = d(id=self.id, spec=self.spec,
@@ -85,12 +85,17 @@ class PipelineDashboardFactory(pn.viewable.Viewer):
         """
         # yield pn.indicators.LoadingSpinner(value=True, width=25, height=25)
 
-        p = await self.spec["config"]["client"].read_pipeline(id=self.id)
+        try:
+            p = await self.spec["config"]["client"].read_pipeline(id=self.id)
 
-        if UI_PLUGINS["DASHBOARD"].get(self.pipeline, None):
-            yield self.build_custom_dashboard(p)
-        else:
-            yield self.build_default_dashboard(p)
+            if UI_PLUGINS["DASHBOARD"].get(self.pipeline, None):
+                yield self.build_custom_dashboard(p)
+            else:
+                yield self.build_default_dashboard(p)
+        except Exception as e:
+            # In case of any errors, ensure we clean up sessions
+            await self.spec["config"]["client"].close_sessions()
+            raise e
 
     def __panel__(self):
 
