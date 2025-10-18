@@ -9,7 +9,7 @@ import redis
 import redis.asyncio as redis_asyncio
 from celery.result import AsyncResult
 from celery.states import READY_STATES
-
+import ssl
 from .json_log_formatter import JSONFormatter  # VerboseJSONFormatter also available
 
 logger = logging.getLogger("kedro-graphql")
@@ -18,7 +18,7 @@ logger.setLevel(logging.INFO)
 
 class RedisLogStreamPublisher(object):
     def __init__(self, topic, broker_url=None):
-        self.connection = redis.Redis.from_url(broker_url)
+        self.connection = redis.Redis.from_url(broker_url,ssl_cert_reqs=ssl.CERT_NONE)
         self.topic = topic
         if not self.connection.exists(self.topic):
             self.connection.xadd(
@@ -44,7 +44,7 @@ class RedisLogStreamSubscriber(object):
         self = RedisLogStreamSubscriber()
         self.topic = topic
         self.broker_url = broker_url
-        self.connection = await redis_asyncio.from_url(broker_url)
+        self.connection = await redis_asyncio.from_url(broker_url, ssl_cert_reqs=ssl.CERT_NONE)
         return self
 
     async def consume(self, count=1, start_id=0):
