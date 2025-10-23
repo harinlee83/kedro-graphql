@@ -1,6 +1,5 @@
 from celery import Celery
 from celery import signals
-import ssl
 
 
 def celery_app(config, backend, schema):
@@ -9,9 +8,6 @@ def celery_app(config, backend, schema):
     class Config:
         broker_url = config["KEDRO_GRAPHQL_BROKER"]
         result_backend = config["KEDRO_GRAPHQL_CELERY_RESULT_BACKEND"]
-        broker_use_ssl = {
-            "ssl_cert_reqs": ssl.CERT_NONE
-        }
         result_extended = True
         task_serializer = 'json'
         result_serializer = 'json'
