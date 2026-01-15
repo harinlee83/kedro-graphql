@@ -35,14 +35,14 @@ async def lifespan(app: FastAPI):
 
 class KedroGraphQL(FastAPI):
 
-    def __init__(self, kedro_session=None, config=CONFIG):
+    def __init__(self, kedro_session=None, config=CONFIG, lifespan_handler=None):
         super(KedroGraphQL, self).__init__(
             title=config["KEDRO_GRAPHQL_APP_TITLE"],
             description=config["KEDRO_GRAPHQL_APP_DESCRIPTION"],
             version=config["KEDRO_GRAPHQL_PROJECT_VERSION"],
             docs_url="/docs",  # Swagger UI URL
             root_path=config["KEDRO_GRAPHQL_ROOT_PATH"],
-            lifespan=lifespan
+            lifespan=lifespan_handler or lifespan
         )
 
         self.kedro_session = kedro_session
