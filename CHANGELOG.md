@@ -1,6 +1,10 @@
 # Changelog
 
-# Changelog
+## [Unreleased]
+
+Added:
+
+- **Configurable Lifespan Handler**: `KedroGraphQL` now accepts an optional `lifespan_handler` parameter, allowing child classes to provide custom lifespan handlers for startup/shutdown logic
 
 ## [1.4.0] - 2025-10-26
 
