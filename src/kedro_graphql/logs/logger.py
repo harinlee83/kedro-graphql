@@ -9,6 +9,7 @@ import redis
 import redis.asyncio as redis_asyncio
 from celery.result import AsyncResult
 from celery.states import READY_STATES
+from starlette.concurrency import run_in_threadpool
 
 from .json_log_formatter import JSONFormatter  # VerboseJSONFormatter also available
 
@@ -87,8 +88,23 @@ class PipelineLogStream():
                 # https://redis-py.readthedocs.io/en/stable/examples/redis-stream-example.html#read-more-data-from-the-stream
                 start_id = stream_data[0][1][-1][0]
             else:
-                # check task status
-                r = AsyncResult(self.task_id)
-                if r.status in READY_STATES:
-                    await self.broker.connection.close()
+                # check task status - wrap blocking Celery operation in thread pool
+                def check_task_status(task_id):
+                    try:
+                        r = AsyncResult(task_id)
+                        # Check if backend is disabled/not available
+                        if not hasattr(r.backend, '_get_task_meta_for'):
+                            # No result backend configured, can't check status
+                            # Return None to indicate we should keep streaming
+                            return None
+                        return r.status
+                    except (AttributeError, NotImplementedError):
+                        # Backend doesn't support status checking
+                        return None
+                
+                status = await run_in_threadpool(check_task_status, self.task_id)
+                # Only break if we got a valid status and it's in READY_STATES
+                # If status is None (no backend), continue streaming
+                if status is not None and status in READY_STATES:
+                    await self.broker.connection.aclose()
                     break

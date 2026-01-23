@@ -193,10 +193,11 @@ class KedroGraphqlTask(Task):
         """
 
         p = self.db.read(id=kwargs["id"])
-        p.status[-1].state = State.FAILURE
-        p.status[-1].task_exception = str(exc)
-        p.status[-1].task_einfo = str(einfo)
-        self.db.update(p)
+        if p is not None:
+            p.status[-1].state = State.FAILURE
+            p.status[-1].task_exception = str(exc)
+            p.status[-1].task_einfo = str(einfo)
+            self.db.update(p)
 
     def after_return(self, status, retval, task_id, args, kwargs, einfo):
         """Handler called after the task returns.
@@ -216,9 +217,10 @@ class KedroGraphqlTask(Task):
         finished_at = datetime.now()
 
         p = self.db.read(id=kwargs["id"])
-        p.status[-1].finished_at = finished_at
-        p.status[-1].task_result = str(retval)
-        self.db.update(p)
+        if p is not None:
+            p.status[-1].finished_at = finished_at
+            p.status[-1].task_result = str(retval)
+            self.db.update(p)
 
         logger.info("Closing log stream")
 

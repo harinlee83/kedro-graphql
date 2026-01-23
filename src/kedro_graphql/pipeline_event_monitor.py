@@ -7,6 +7,7 @@ from threading import Thread
 from typing import AsyncGenerator
 
 from celery.states import READY_STATES
+from starlette.concurrency import run_in_threadpool
 
 logger = logging.getLogger("kedro-graphql")
 
@@ -115,9 +116,42 @@ class PipelineEventMonitor:
 
         """
 
+        def get_task_state(app, task_id):
+            """Helper to get task state in thread pool - Celery AsyncResult properties are blocking."""
+            try:
+                task = app.AsyncResult(task_id)
+                # Check if backend is disabled/not available
+                if not hasattr(task.backend, '_get_task_meta_for'):
+                    # No result backend configured, return pending status
+                    return {
+                        "task_id": task_id,
+                        "status": "PENDING",
+                        "result": "No result backend configured",
+                        "timestamp": time.time(),
+                        "traceback": None
+                    }
+                return {
+                    "task_id": task.id,
+                    "status": task.state,
+                    "result": str(task.result),
+                    "timestamp": time.time(),
+                    "traceback": task.traceback
+                }
+            except (AttributeError, NotImplementedError) as e:
+                # Backend doesn't support status checking
+                return {
+                    "task_id": task_id,
+                    "status": "PENDING",
+                    "result": f"Backend error: {str(e)}",
+                    "timestamp": time.time(),
+                    "traceback": None
+                }
+
         while True:
-            task = self.app.AsyncResult(self.task_id)
-            yield {"task_id": task.id, "status": task.state, "result": str(task.result), "timestamp": time.time(), "traceback": task.traceback}
-            if self.app.AsyncResult(self.task_id).status in READY_STATES:
+            # Run blocking Celery AsyncResult access in thread pool
+            task_state = await run_in_threadpool(get_task_state, self.app, self.task_id)
+            yield task_state
+            
+            if task_state["status"] in READY_STATES:
                 break
             await asyncio.sleep(interval)
