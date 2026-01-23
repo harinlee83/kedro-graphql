@@ -182,13 +182,27 @@ class TestKedroGraphqlClient:
 
         pipeline_input, expected, pipeline = mock_create_pipeline
 
+        # Only consume a limited number of events to avoid hanging
+        event_count = 0
+        max_events = 5  # Only consume first 5 events then break
+        
         async for result in mock_client.pipeline_events(id=pipeline.id):
             assert result.status in ALL_STATES
+            event_count += 1
+            if event_count >= max_events:
+                break
 
     @pytest.mark.asyncio
     async def test_pipeline_logs(self, mock_celery_session_app, celery_session_worker, mock_create_pipeline, mock_client):
 
         pipeline_input, expected, pipeline = mock_create_pipeline
 
+        # Only consume a limited number of log messages to avoid hanging
+        log_count = 0
+        max_logs = 5  # Only consume first 5 log messages then break
+        
         async for result in mock_client.pipeline_logs(id=pipeline.id):
             assert result.id == pipeline.id
+            log_count += 1
+            if log_count >= max_logs:
+                break

@@ -18,7 +18,7 @@ config:
   imports:
     - "kedro_graphql.plugins.plugins"
   local_file_provider_server_url: "http://localhost:5000"
-  log_path_prefix: null
+  log_path_prefix: "data/01_raw/logs"
   log_tmp_dir: "/tmp/"
   mongo_db_collection: "pipelines"
   mongo_db_name: "pipelines"
